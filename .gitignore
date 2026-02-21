@@ -1,0 +1,22 @@
+# Project docs (local only)
+CLAUDE.md
+docs/
+
+# Dependencies
+node_modules/
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# QML cache
+qmlcache/
+*.qmlc
+*.jsc
