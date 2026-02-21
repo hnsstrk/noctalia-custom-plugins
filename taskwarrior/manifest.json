@@ -1,0 +1,29 @@
+{
+  "id": "taskwarrior",
+  "name": "Taskwarrior",
+  "version": "1.0.0",
+  "minNoctaliaVersion": "4.1.2",
+  "author": "hnsstrk",
+  "license": "MIT",
+  "repository": "https://github.com/hnsstrk/noctalia-custom-plugins",
+  "description": "A full-featured Taskwarrior client for Noctalia Shell",
+  "tags": ["Bar", "Panel", "Productivity", "i18n"],
+  "dependencies": {
+    "plugins": []
+  },
+  "entryPoints": {
+    "main": "Main.qml",
+    "barWidget": "BarWidget.qml",
+    "panel": "Panel.qml",
+    "settings": "Settings.qml"
+  },
+  "metadata": {
+    "defaultSettings": {
+      "barWidgetCounter": "pending",
+      "showActiveIndicator": true,
+      "defaultProject": "",
+      "defaultPriority": "",
+      "hookInstalled": false
+    }
+  }
+}

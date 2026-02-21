@@ -1,0 +1,4 @@
+#!/bin/bash
+# Taskwarrior on-exit hook: notify Noctalia Shell on task changes
+qs -c noctalia-shell ipc call plugin:taskwarrior refresh &
+exit 0
