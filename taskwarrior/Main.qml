@@ -21,6 +21,8 @@ Item {
     property int currentRequestId: 0
     property string searchText: ""
     property int hookRetryCount: 0
+    property bool refreshInProgress: false
+    property int pendingRefreshProcesses: 0
 
     // === Initialization ===
     Component.onCompleted: {
@@ -37,7 +39,7 @@ Item {
 
     // === Taskwarrior Availability Check ===
     function checkTaskwarrior() {
-        checkProcess.command = ["task", "rc.hooks=0", "--version"];
+        checkProcess.command = ["task", "--version"];
         checkProcess.running = true;
     }
 
@@ -63,10 +65,23 @@ Item {
     function refreshAll() {
         if (!root.taskwarriorAvailable)
             return;
+        if (root.refreshInProgress) {
+            Logger.d("Taskwarrior", "Refresh already in progress, skipping");
+            return;
+        }
+        root.refreshInProgress = true;
+        root.pendingRefreshProcesses = 4;
         loadTasks();
         loadCounters();
         loadProjects();
         loadTags();
+    }
+
+    function onRefreshProcessDone() {
+        root.pendingRefreshProcesses--;
+        if (root.pendingRefreshProcesses <= 0) {
+            root.refreshInProgress = false;
+        }
     }
 
     // === UUID Validation ===
@@ -169,6 +184,7 @@ Item {
                     Logger.w("Taskwarrior", "Export stderr: " + errText);
                 }
             }
+            root.onRefreshProcessDone();
         }
     }
 
@@ -221,6 +237,9 @@ Item {
             }
         }
         stderr: StdioCollector {}
+        onExited: function (exitCode, exitStatus) {
+            root.onRefreshProcessDone();
+        }
     }
 
     // === CRUD Actions ===
@@ -264,7 +283,7 @@ Item {
                     ToastService.showNotice(actionProcess.successMessage);
                 }
                 Logger.i("Taskwarrior", "Action completed successfully");
-                root.refreshAll();
+                refreshDebounceTimer.restart();
             } else {
                 var errText = String(actionProcess.stderr.text || "").trim();
                 var msg = actionProcess.errorMessage || pluginApi?.tr("main.error-action-failed") || "Action failed";
@@ -485,6 +504,9 @@ Item {
             }
         }
         stderr: StdioCollector {}
+        onExited: function (exitCode, exitStatus) {
+            root.onRefreshProcessDone();
+        }
     }
 
     function loadTags() {
@@ -516,6 +538,9 @@ Item {
             }
         }
         stderr: StdioCollector {}
+        onExited: function (exitCode, exitStatus) {
+            root.onRefreshProcessDone();
+        }
     }
 
     // === Hook Management ===
