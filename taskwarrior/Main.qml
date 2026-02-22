@@ -521,7 +521,12 @@ Item {
         stdout: StdioCollector {
             onStreamFinished: {
                 var dir = String(text || "").trim();
-                var home = Quickshell.env("HOME") || "/tmp";
+                var home = Quickshell.env("HOME");
+                if (!home) {
+                    Logger.e("Taskwarrior", "Could not determine HOME directory. Hook management is disabled.");
+                    root.hookDir = "";
+                    return;
+                }
                 if (dir !== "") {
                     if (dir.startsWith("~")) {
                         root.hookDir = home + dir.substring(1) + "/hooks";
