@@ -20,6 +20,7 @@ Item {
   property var currentFilter: ({})
   property int currentRequestId: 0
   property string searchText: ""
+  property int hookRetryCount: 0
 
   // === Initialization ===
   Component.onCompleted: {
@@ -280,14 +281,24 @@ Item {
 
     var cmd = ["task", "add"];
 
-    var proj = project || (pluginApi?.pluginSettings?.defaultProject || "");
-    if (proj && String(proj).trim() !== "") {
-      cmd.push("project:" + String(proj).trim());
-    }
-
     var prio = priority || (pluginApi?.pluginSettings?.defaultPriority || "");
     if (prio && String(prio).trim() !== "") {
-      cmd.push("priority:" + String(prio).trim());
+      prio = String(prio).trim().toUpperCase();
+      if (["H", "M", "L"].indexOf(prio) === -1) {
+        Logger.w("Taskwarrior", "Invalid priority: " + prio);
+        return;
+      }
+      cmd.push("priority:" + prio);
+    }
+
+    var proj = project || (pluginApi?.pluginSettings?.defaultProject || "");
+    if (proj && String(proj).trim() !== "") {
+      proj = String(proj).trim();
+      if (!/^[a-zA-Z0-9._-]+$/.test(proj)) {
+        Logger.w("Taskwarrior", "Invalid project name: " + proj);
+        return;
+      }
+      cmd.push("project:" + proj);
     }
 
     if (due && String(due).trim() !== "") {
@@ -356,6 +367,33 @@ Item {
     } else {
       cmd = ["task", String(uuid), "modify", String(field) + ":" + String(value)];
     }
+
+    runAction(cmd,
+      pluginApi?.tr("main.task-modified") || "Task modified",
+      pluginApi?.tr("main.error-modify-failed") || "Failed to modify task"
+    );
+  }
+
+  function batchModifyTask(uuid, modifications) {
+    if (!root.taskwarriorAvailable || !uuid) return;
+    if (!isValidUuid(uuid)) return;
+
+    var allowedFields = ["description", "project", "priority", "due", "wait", "scheduled", "recur", "until"];
+    var cmd = ["task", String(uuid), "modify"];
+
+    for (var i = 0; i < modifications.length; i++) {
+      var mod = modifications[i];
+      if (mod.field === "tags") {
+        var tagValue = String(mod.value);
+        if (/^[+-][a-zA-Z0-9_-]+$/.test(tagValue)) {
+          cmd.push(tagValue);
+        }
+      } else if (allowedFields.indexOf(String(mod.field)) !== -1) {
+        cmd.push(String(mod.field) + ":" + String(mod.value));
+      }
+    }
+
+    if (cmd.length <= 3) return;
 
     runAction(cmd,
       pluginApi?.tr("main.task-modified") || "Task modified",
@@ -466,6 +504,7 @@ Item {
             return;
           }
           root.hookDir = dir + "/hooks";
+          root.hookRetryCount = 0;
         } else {
           homeProcess.pendingDir = "/.task";
           homeProcess.command = ["sh", "-c", "echo $HOME"];
@@ -489,6 +528,7 @@ Item {
         } else {
           root.hookDir = "/tmp/taskwarrior-hooks";
         }
+        root.hookRetryCount = 0;
         Logger.d("Taskwarrior", "Hook directory (resolved): " + root.hookDir);
       }
     }
@@ -498,6 +538,11 @@ Item {
   function installHook() {
     if (!pluginApi) return;
     if (root.hookDir === "") {
+      if (root.hookRetryCount >= 3) {
+        Logger.e("Taskwarrior", "Hook directory detection failed after 3 retries");
+        return;
+      }
+      root.hookRetryCount++;
       detectHookDir();
       retryInstallTimer.running = true;
       return;
@@ -516,6 +561,11 @@ Item {
 
   function removeHook() {
     if (root.hookDir === "") {
+      if (root.hookRetryCount >= 3) {
+        Logger.e("Taskwarrior", "Hook directory detection failed after 3 retries");
+        return;
+      }
+      root.hookRetryCount++;
       detectHookDir();
       retryRemoveTimer.running = true;
       return;
