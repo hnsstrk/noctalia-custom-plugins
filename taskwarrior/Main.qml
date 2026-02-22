@@ -318,6 +318,10 @@ Item {
             for (var i = 0; i < tagList.length; i++) {
                 var tag = tagList[i].trim();
                 if (tag !== "") {
+                    if (!/^[a-zA-Z0-9._-]+$/.test(tag)) {
+                        Logger.w("Taskwarrior", "Skipping invalid tag format in addTask: " + tag);
+                        continue;
+                    }
                     cmd.push("+" + tag);
                 }
             }
@@ -362,7 +366,7 @@ Item {
         if (field === "tags") {
             // Tags require special handling: value is "+tag" or "-tag"
             var tagValue = String(value);
-            if (!/^[+-][a-zA-Z0-9_-]+$/.test(tagValue)) {
+            if (!/^[+-][a-zA-Z0-9._-]+$/.test(tagValue)) {
                 Logger.w("Taskwarrior", "Blocked invalid tag value: " + value);
                 return;
             }
@@ -387,7 +391,7 @@ Item {
             var mod = modifications[i];
             if (mod.field === "tags") {
                 var tagValue = String(mod.value);
-                if (/^[+-][a-zA-Z0-9_-]+$/.test(tagValue)) {
+                if (/^[+-][a-zA-Z0-9._-]+$/.test(tagValue)) {
                     cmd.push(tagValue);
                 }
             } else if (allowedFields.indexOf(String(mod.field)) !== -1) {
