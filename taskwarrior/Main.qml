@@ -294,6 +294,7 @@ Item {
             prio = String(prio).trim().toUpperCase();
             if (["H", "M", "L"].indexOf(prio) === -1) {
                 Logger.w("Taskwarrior", "Invalid priority: " + prio);
+                ToastService.showError(pluginApi?.tr("main.error-add-failed") || "Failed to add task");
                 return;
             }
             cmd.push("priority:" + prio);
@@ -302,8 +303,9 @@ Item {
         var proj = project || (pluginApi?.pluginSettings?.defaultProject || "");
         if (proj && String(proj).trim() !== "") {
             proj = String(proj).trim();
-            if (!/^[a-zA-Z0-9._-]+$/.test(proj)) {
+            if (!/^[a-zA-Z0-9._\/-]+$/.test(proj)) {
                 Logger.w("Taskwarrior", "Invalid project name: " + proj);
+                ToastService.showError(pluginApi?.tr("main.error-add-failed") || "Failed to add task");
                 return;
             }
             cmd.push("project:" + proj);
@@ -375,13 +377,15 @@ Item {
             var prio = String(value).trim().toUpperCase();
             if (prio !== "" && ["H", "M", "L"].indexOf(prio) === -1) {
                 Logger.w("Taskwarrior", "Invalid priority: " + value);
+                ToastService.showError(pluginApi?.tr("main.error-modify-failed") || "Failed to modify task");
                 return;
             }
             cmd = ["task", String(uuid), "modify", "priority:" + prio];
         } else if (field === "project") {
             var proj = String(value).trim();
-            if (proj !== "" && !/^[a-zA-Z0-9._-]+$/.test(proj)) {
+            if (proj !== "" && !/^[a-zA-Z0-9._\/-]+$/.test(proj)) {
                 Logger.w("Taskwarrior", "Invalid project name: " + value);
+                ToastService.showError(pluginApi?.tr("main.error-modify-failed") || "Failed to modify task");
                 return;
             }
             cmd = ["task", String(uuid), "modify", "project:" + proj];
@@ -419,7 +423,7 @@ Item {
                 cmd.push("priority:" + prio);
             } else if (mod.field === "project") {
                 var proj = String(mod.value).trim();
-                if (proj !== "" && !/^[a-zA-Z0-9._-]+$/.test(proj)) {
+                if (proj !== "" && !/^[a-zA-Z0-9._\/-]+$/.test(proj)) {
                     Logger.w("Taskwarrior", "Skipping invalid project modification in batch: " + proj);
                     continue;
                 }
