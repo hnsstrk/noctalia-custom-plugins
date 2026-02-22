@@ -4,7 +4,7 @@
     {
       "id": "taskwarrior",
       "name": "Taskwarrior",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "official": false,
       "author": "hnsstrk",
       "description": "A full-featured Taskwarrior client for Noctalia Shell",
@@ -17,7 +17,7 @@
         "Productivity",
         "i18n"
       ],
-      "lastUpdated": "2026-02-22T09:41:48+01:00"
+      "lastUpdated": "2026-02-21T21:28:53+01:00"
     }
   ]
 }

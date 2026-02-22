@@ -13,7 +13,7 @@ Custom plugin repository for **Noctalia Shell** — a Linux desktop shell for Wa
 node .github/workflows/update-registry.js
 
 # Format QML files before committing
-qmlfmt -w <file>.qml
+/usr/lib/qt6/bin/qmlformat -i <file>.qml
 
 # Hot reload during development
 NOCTALIA_DEBUG=1 noctalia-shell
@@ -142,6 +142,40 @@ Types: `feat`, `fix`, `chore`, `i18n`, `docs`
 ### Quality
 
 - **Qt6 only** — no Qt5Compat imports
-- **qmlfmt** on all QML files before commits
+- **qmlformat** on all QML files before commits (`/usr/lib/qt6/bin/qmlformat -i`)
 - **IPC params are always strings** — explicit type conversion required
 - **Logger** for debug output, never `console.log`
+
+### Versioning
+
+- Jeder PR der Plugin-Code ändert (QML, JS, Hook-Scripts) **MUSS** die `version` in `manifest.json` bumpen
+- SemVer: `MAJOR.MINOR.PATCH` — Bugfixes/Security → Patch, neue Features → Minor, Breaking Changes → Major
+- Die `registry.json` wird automatisch per GitHub Action aktualisiert wenn `manifest.json` sich ändert
+- **Ohne Version-Bump wird die Registry nicht aktualisiert** — Nutzer erhalten kein Update
+
+### Pull Request Workflow
+
+1. **Feature-Branch erstellen** — `feat/<name>` oder `hotfix/<name>`, idealerweise in einem Git-Worktree (`.worktrees/`)
+2. **Implementieren** — Commits im Format `type(scope): message`
+3. **Version bumpen** — `manifest.json` `version` gemäß SemVer aktualisieren (Pflicht bei Plugin-Code-Änderungen)
+4. **QML formatieren** — `/usr/lib/qt6/bin/qmlformat -i` auf alle geänderten `.qml`-Dateien
+5. **PR erstellen** — `gh pr create` mit Summary, Security Fixes (falls relevant), und Test Plan
+6. **Automated Review abwarten** — Gemini Code Assist reviewt automatisch
+7. **Review-Feedback auswerten** — Technisch prüfen, nicht blind übernehmen. Bei falschen Suggestions begründet pushbacken. Korrekte Findings einarbeiten.
+8. **Re-Review triggern** — Nach Einarbeitung von Feedback den kompletten Review-Zyklus wiederholen:
+   - Fixes committen und pushen
+   - Auf alle Inline-Kommentare im PR-Thread antworten (was gefixt wurde, mit Commit-Hash)
+   - `/gemini review` als PR-Kommentar posten um erneutes Review auszulösen
+   - Neues Feedback abwarten und auswerten
+   - Zyklus wiederholen bis keine offenen Findings mehr bestehen
+9. **Merge** — Erst wenn der letzte Review-Zyklus keine neuen Findings ergibt. Squash-Merge bevorzugt für saubere History auf `main`.
+
+**WICHTIG:** Nach jedem Push von Fixes MUSS ein Re-Review mit `/gemini review` getriggert werden. Niemals ohne finalen Review-Durchlauf mergen. Der Zyklus ist: Fix → Push → Kommentare beantworten → `/gemini review` → Feedback prüfen → ggf. wiederholen → Merge.
+
+### Security Patterns (Taskwarrior Plugin)
+
+- **CLI-Befehle als Array** — niemals `sh -c` mit String-Konkatenation, immer parametrisierte Arrays: `["task", arg1, arg2]`
+- **rc.hooks=0** — bei allen read-only `task`-Befehlen, um Feedback-Loops mit on-exit Hooks zu vermeiden. CRUD-Aktionen behalten Hooks.
+- **Debounce auf IPC-Handler** — Timer mit `restart()` statt direkter Ausführung, um Burst-Aufrufe zu entprellen
+- **Input-Validierung** — UUID-Format (RFC 4122), Field-Whitelist bei modify, Tag-Regex, Priority-Enum (H/M/L)
+- **$HOME-Expansion** — Tilde in Pfaden immer über Subprocess auflösen, nie als `$HOME`-Literal speichern
