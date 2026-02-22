@@ -407,16 +407,22 @@ Item {
                 var tagValue = String(mod.value);
                 if (/^[+-][a-zA-Z0-9._-]+$/.test(tagValue)) {
                     cmd.push(tagValue);
+                } else {
+                    Logger.w("Taskwarrior", "Skipping invalid tag modification in batch: " + tagValue);
                 }
             } else if (mod.field === "priority") {
                 var prio = String(mod.value).trim().toUpperCase();
-                if (prio !== "" && ["H", "M", "L"].indexOf(prio) === -1)
+                if (prio !== "" && ["H", "M", "L"].indexOf(prio) === -1) {
+                    Logger.w("Taskwarrior", "Skipping invalid priority modification in batch: " + prio);
                     continue;
+                }
                 cmd.push("priority:" + prio);
             } else if (mod.field === "project") {
                 var proj = String(mod.value).trim();
-                if (proj !== "" && !/^[a-zA-Z0-9._-]+$/.test(proj))
+                if (proj !== "" && !/^[a-zA-Z0-9._-]+$/.test(proj)) {
+                    Logger.w("Taskwarrior", "Skipping invalid project modification in batch: " + proj);
                     continue;
+                }
                 cmd.push("project:" + proj);
             } else if (allowedFields.indexOf(String(mod.field)) !== -1) {
                 cmd.push(String(mod.field) + ":" + String(mod.value));
