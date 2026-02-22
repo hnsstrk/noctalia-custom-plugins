@@ -135,6 +135,10 @@ Types: `feat`, `fix`, `chore`, `i18n`, `docs`
 - Placeholders `{var}` must be preserved in translations
 - Key suffixes: `-label`, `-description`, `-placeholder`, `-tooltip`
 
+### TODO Tracking
+
+`TODO.md` (git-ignored) collects open issues, planned improvements, and deferred items from code reviews. Check before starting work on a plugin to see if there are relevant pending items.
+
 ### Quality
 
 - **Qt6 only** — no Qt5Compat imports
