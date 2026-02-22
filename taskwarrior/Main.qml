@@ -497,41 +497,18 @@ Item {
         stdout: StdioCollector {
             onStreamFinished: {
                 var dir = String(text || "").trim();
+                var home = Quickshell.env("HOME") || "/tmp";
                 if (dir !== "") {
                     if (dir.startsWith("~")) {
-                        dir = dir.replace(/^~/, "");
-                        homeProcess.pendingDir = dir;
-                        homeProcess.command = ["sh", "-c", "echo $HOME"];
-                        homeProcess.running = true;
-                        return;
+                        root.hookDir = home + dir.substring(1) + "/hooks";
+                    } else {
+                        root.hookDir = dir + "/hooks";
                     }
-                    root.hookDir = dir + "/hooks";
-                    root.hookRetryCount = 0;
                 } else {
-                    homeProcess.pendingDir = "/.task";
-                    homeProcess.command = ["sh", "-c", "echo $HOME"];
-                    homeProcess.running = true;
-                    return;
-                }
-                Logger.d("Taskwarrior", "Hook directory: " + root.hookDir);
-            }
-        }
-        stderr: StdioCollector {}
-    }
-
-    Process {
-        id: homeProcess
-        property string pendingDir: ""
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var home = String(text || "").trim();
-                if (home !== "") {
-                    root.hookDir = home + homeProcess.pendingDir + "/hooks";
-                } else {
-                    root.hookDir = "/tmp/taskwarrior-hooks";
+                    root.hookDir = home + "/.task/hooks";
                 }
                 root.hookRetryCount = 0;
-                Logger.d("Taskwarrior", "Hook directory (resolved): " + root.hookDir);
+                Logger.d("Taskwarrior", "Hook directory: " + root.hookDir);
             }
         }
         stderr: StdioCollector {}
