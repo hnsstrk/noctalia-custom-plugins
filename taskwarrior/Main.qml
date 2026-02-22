@@ -371,6 +371,20 @@ Item {
                 return;
             }
             cmd = ["task", String(uuid), "modify", tagValue];
+        } else if (field === "priority") {
+            var prio = String(value).trim().toUpperCase();
+            if (prio !== "" && ["H", "M", "L"].indexOf(prio) === -1) {
+                Logger.w("Taskwarrior", "Invalid priority: " + value);
+                return;
+            }
+            cmd = ["task", String(uuid), "modify", "priority:" + prio];
+        } else if (field === "project") {
+            var proj = String(value).trim();
+            if (proj !== "" && !/^[a-zA-Z0-9._-]+$/.test(proj)) {
+                Logger.w("Taskwarrior", "Invalid project name: " + value);
+                return;
+            }
+            cmd = ["task", String(uuid), "modify", "project:" + proj];
         } else {
             cmd = ["task", String(uuid), "modify", String(field) + ":" + String(value)];
         }
@@ -394,6 +408,16 @@ Item {
                 if (/^[+-][a-zA-Z0-9._-]+$/.test(tagValue)) {
                     cmd.push(tagValue);
                 }
+            } else if (mod.field === "priority") {
+                var prio = String(mod.value).trim().toUpperCase();
+                if (prio !== "" && ["H", "M", "L"].indexOf(prio) === -1)
+                    continue;
+                cmd.push("priority:" + prio);
+            } else if (mod.field === "project") {
+                var proj = String(mod.value).trim();
+                if (proj !== "" && !/^[a-zA-Z0-9._-]+$/.test(proj))
+                    continue;
+                cmd.push("project:" + proj);
             } else if (allowedFields.indexOf(String(mod.field)) !== -1) {
                 cmd.push(String(mod.field) + ":" + String(mod.value));
             }
@@ -532,7 +556,7 @@ Item {
         var targetDir = root.hookDir;
         var targetFile = targetDir + "/on-exit-noctalia";
         Logger.i("Taskwarrior", "Installing hook to " + targetDir);
-        hookInstallProcess.command = ["bash", "-c", 'mkdir -p "$1" && cp "$2" "$3" && chmod +x "$3"', "_", targetDir, hookSource, targetFile];
+        hookInstallProcess.command = ["bash", "-c", 'mkdir -p -- "$1" && cp -- "$2" "$3" && chmod -- +x "$3"', "_", targetDir, hookSource, targetFile];
         hookInstallProcess.running = true;
     }
 
