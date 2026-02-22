@@ -36,7 +36,7 @@ Item {
 
   // === Taskwarrior Availability Check ===
   function checkTaskwarrior() {
-    checkProcess.command = ["task", "--version"];
+    checkProcess.command = ["task", "rc.hooks=0", "--version"];
     checkProcess.running = true;
   }
 
@@ -69,7 +69,7 @@ Item {
 
   // === Filter Engine ===
   function buildFilterCommand(filter) {
-    var parts = ["task", "rc.json.array=on"];
+    var parts = ["task", "rc.hooks=0", "rc.json.array=on"];
 
     if (filter.status && filter.status !== "all") {
       parts.push("status:" + filter.status);
@@ -167,7 +167,7 @@ Item {
   // === Counter-Prozesse für BarWidget (laufen unabhängig vom Filter) ===
   function loadCounters() {
     if (!root.taskwarriorAvailable) return;
-    counterProcess.command = ["task", "rc.json.array=on", "status:pending", "export"];
+    counterProcess.command = ["task", "rc.hooks=0", "rc.json.array=on", "status:pending", "export"];
     counterProcess.running = true;
   }
 
@@ -317,7 +317,7 @@ Item {
   function deleteTask(uuid) {
     if (!root.taskwarriorAvailable || !uuid) return;
     runAction(
-      ["sh", "-c", "echo 'yes' | task " + String(uuid) + " delete"],
+      ["task", "rc.confirmation=off", String(uuid), "delete"],
       pluginApi?.tr("main.task-deleted") || "Task deleted",
       pluginApi?.tr("main.error-delete-failed") || "Failed to delete task"
     );
@@ -361,7 +361,7 @@ Item {
   // === Metadata Loading ===
   function loadProjects() {
     if (!root.taskwarriorAvailable) return;
-    projectsProcess.command = ["task", "_projects"];
+    projectsProcess.command = ["task", "rc.hooks=0", "_projects"];
     projectsProcess.running = true;
   }
 
@@ -391,7 +391,7 @@ Item {
 
   function loadTags() {
     if (!root.taskwarriorAvailable) return;
-    tagsProcess.command = ["task", "_tags"];
+    tagsProcess.command = ["task", "rc.hooks=0", "_tags"];
     tagsProcess.running = true;
   }
 
@@ -423,7 +423,7 @@ Item {
   property string hookDir: ""
 
   function detectHookDir() {
-    hookDirProcess.command = ["task", "_get", "rc.data.location"];
+    hookDirProcess.command = ["task", "rc.hooks=0", "_get", "rc.data.location"];
     hookDirProcess.running = true;
   }
 
@@ -453,15 +453,17 @@ Item {
     if (!pluginApi) return;
     if (root.hookDir === "") {
       detectHookDir();
-      // Retry after detection — use a simple delay
       retryInstallTimer.running = true;
       return;
     }
 
     var hookSource = pluginApi.pluginDir + "/hooks/on-exit-noctalia";
-    Logger.i("Taskwarrior", "Installing hook to " + root.hookDir);
-    hookInstallProcess.command = ["sh", "-c",
-      "mkdir -p " + root.hookDir + " && cp '" + hookSource + "' " + root.hookDir + "/on-exit-noctalia && chmod +x " + root.hookDir + "/on-exit-noctalia"
+    var targetDir = root.hookDir;
+    var targetFile = targetDir + "/on-exit-noctalia";
+    Logger.i("Taskwarrior", "Installing hook to " + targetDir);
+    hookInstallProcess.command = ["bash", "-c",
+      'mkdir -p "$1" && cp "$2" "$3" && chmod +x "$3"',
+      "_", targetDir, hookSource, targetFile
     ];
     hookInstallProcess.running = true;
   }
@@ -473,9 +475,17 @@ Item {
       return;
     }
 
+    var targetFile = root.hookDir + "/on-exit-noctalia";
     Logger.i("Taskwarrior", "Removing hook from " + root.hookDir);
-    hookRemoveProcess.command = ["sh", "-c", "rm -f " + root.hookDir + "/on-exit-noctalia"];
+    hookRemoveProcess.command = ["rm", "-f", targetFile];
     hookRemoveProcess.running = true;
+  }
+
+  Timer {
+    id: refreshDebounceTimer
+    interval: 300
+    repeat: false
+    onTriggered: root.refreshAll()
   }
 
   Timer {
@@ -546,7 +556,7 @@ Item {
     }
 
     function refresh() {
-      root.refreshAll();
+      refreshDebounceTimer.restart();
     }
 
     function addTask(description: string, project: string, priority: string, due: string, tags: string) {
