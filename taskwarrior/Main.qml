@@ -348,7 +348,7 @@ Item {
     if (field === "tags") {
       // Tags require special handling: value is "+tag" or "-tag"
       var tagValue = String(value);
-      if (!/^[+-][a-zA-Z0-9_]+$/.test(tagValue)) {
+      if (!/^[+-][a-zA-Z0-9_-]+$/.test(tagValue)) {
         Logger.w("Taskwarrior", "Blocked invalid tag value: " + value);
         return;
       }
