@@ -67,6 +67,11 @@ Item {
     loadTags();
   }
 
+  // === UUID Validation ===
+  function isValidUuid(uuid) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(uuid));
+  }
+
   // === Filter Engine ===
   function buildFilterCommand(filter) {
     var parts = ["task", "rc.hooks=0", "rc.json.array=on"];
@@ -273,7 +278,7 @@ Item {
       return;
     }
 
-    var cmd = ["task", "add", String(description).trim()];
+    var cmd = ["task", "add"];
 
     var proj = project || (pluginApi?.pluginSettings?.defaultProject || "");
     if (proj && String(proj).trim() !== "") {
@@ -299,6 +304,10 @@ Item {
       }
     }
 
+    // -- separator prevents description from being parsed as attributes
+    cmd.push("--");
+    cmd.push(String(description).trim());
+
     runAction(cmd,
       pluginApi?.tr("main.task-added") || "Task added",
       pluginApi?.tr("main.error-add-failed") || "Failed to add task"
@@ -307,6 +316,7 @@ Item {
 
   function completeTask(uuid) {
     if (!root.taskwarriorAvailable || !uuid) return;
+    if (!isValidUuid(uuid)) return;
     runAction(
       ["task", String(uuid), "done"],
       pluginApi?.tr("main.task-completed") || "Task completed",
@@ -316,6 +326,7 @@ Item {
 
   function deleteTask(uuid) {
     if (!root.taskwarriorAvailable || !uuid) return;
+    if (!isValidUuid(uuid)) return;
     runAction(
       ["task", "rc.confirmation=off", String(uuid), "delete"],
       pluginApi?.tr("main.task-deleted") || "Task deleted",
@@ -325,11 +336,23 @@ Item {
 
   function modifyTask(uuid, field, value) {
     if (!root.taskwarriorAvailable || !uuid || !field) return;
+    if (!isValidUuid(uuid)) return;
+
+    var allowedFields = ["description", "project", "priority", "due", "wait", "scheduled", "recur", "until", "tags"];
+    if (allowedFields.indexOf(String(field)) === -1) {
+      Logger.w("Taskwarrior", "Blocked modify attempt with disallowed field: " + field);
+      return;
+    }
 
     var cmd;
     if (field === "tags") {
       // Tags require special handling: value is "+tag" or "-tag"
-      cmd = ["task", String(uuid), "modify", String(value)];
+      var tagValue = String(value);
+      if (!/^[+-][a-zA-Z0-9_]+$/.test(tagValue)) {
+        Logger.w("Taskwarrior", "Blocked invalid tag value: " + value);
+        return;
+      }
+      cmd = ["task", String(uuid), "modify", tagValue];
     } else {
       cmd = ["task", String(uuid), "modify", String(field) + ":" + String(value)];
     }
@@ -342,6 +365,7 @@ Item {
 
   function startTask(uuid) {
     if (!root.taskwarriorAvailable || !uuid) return;
+    if (!isValidUuid(uuid)) return;
     runAction(
       ["task", String(uuid), "start"],
       pluginApi?.tr("main.task-started") || "Task started",
@@ -351,6 +375,7 @@ Item {
 
   function stopTask(uuid) {
     if (!root.taskwarriorAvailable || !uuid) return;
+    if (!isValidUuid(uuid)) return;
     runAction(
       ["task", String(uuid), "stop"],
       pluginApi?.tr("main.task-stopped") || "Task stopped",
@@ -433,17 +458,38 @@ Item {
       onStreamFinished: {
         var dir = String(text || "").trim();
         if (dir !== "") {
-          // Expand ~ to $HOME
           if (dir.startsWith("~")) {
-            dir = dir.replace("~", "");
-            root.hookDir = "$HOME" + dir + "/hooks";
-          } else {
-            root.hookDir = dir + "/hooks";
+            dir = dir.replace(/^~/, "");
+            homeProcess.pendingDir = dir;
+            homeProcess.command = ["sh", "-c", "echo $HOME"];
+            homeProcess.running = true;
+            return;
           }
+          root.hookDir = dir + "/hooks";
         } else {
-          root.hookDir = "$HOME/.task/hooks";
+          homeProcess.pendingDir = "/.task";
+          homeProcess.command = ["sh", "-c", "echo $HOME"];
+          homeProcess.running = true;
+          return;
         }
         Logger.d("Taskwarrior", "Hook directory: " + root.hookDir);
+      }
+    }
+    stderr: StdioCollector {}
+  }
+
+  Process {
+    id: homeProcess
+    property string pendingDir: ""
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var home = String(text || "").trim();
+        if (home !== "") {
+          root.hookDir = home + homeProcess.pendingDir + "/hooks";
+        } else {
+          root.hookDir = "/tmp/taskwarrior-hooks";
+        }
+        Logger.d("Taskwarrior", "Hook directory (resolved): " + root.hookDir);
       }
     }
     stderr: StdioCollector {}
