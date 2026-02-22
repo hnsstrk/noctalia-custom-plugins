@@ -907,25 +907,26 @@ Item {
   function saveDetailChanges() {
     if (!mainInstance || !detailDialog.taskData) return;
     var uuid = detailDialog.taskData.uuid;
+    var modifications = [];
 
     if (detailDialog.editDescription !== (detailDialog.taskData.description || ""))
-      mainInstance.modifyTask(uuid, "description", detailDialog.editDescription);
+      modifications.push({field: "description", value: detailDialog.editDescription});
     if (detailDialog.editProject !== (detailDialog.taskData.project || ""))
-      mainInstance.modifyTask(uuid, "project", detailDialog.editProject || "");
+      modifications.push({field: "project", value: detailDialog.editProject || ""});
     if (detailDialog.editPriority !== (detailDialog.taskData.priority || ""))
-      mainInstance.modifyTask(uuid, "priority", detailDialog.editPriority || "");
+      modifications.push({field: "priority", value: detailDialog.editPriority || ""});
 
     var origDue = detailDialog.taskData.due ? formatDateForInput(detailDialog.taskData.due) : "";
     if (detailDialog.editDue !== origDue)
-      mainInstance.modifyTask(uuid, "due", detailDialog.editDue || "");
+      modifications.push({field: "due", value: detailDialog.editDue || ""});
 
     var origWait = detailDialog.taskData.wait ? formatDateForInput(detailDialog.taskData.wait) : "";
     if (detailDialog.editWait !== origWait)
-      mainInstance.modifyTask(uuid, "wait", detailDialog.editWait || "");
+      modifications.push({field: "wait", value: detailDialog.editWait || ""});
 
     var origScheduled = detailDialog.taskData.scheduled ? formatDateForInput(detailDialog.taskData.scheduled) : "";
     if (detailDialog.editScheduled !== origScheduled)
-      mainInstance.modifyTask(uuid, "scheduled", detailDialog.editScheduled || "");
+      modifications.push({field: "scheduled", value: detailDialog.editScheduled || ""});
 
     // Tags (diff-based)
     var origTags = detailDialog.taskData.tags || [];
@@ -933,11 +934,16 @@ Item {
     var newTags = newTagStr === "" ? [] : newTagStr.split(",").map(function(t) { return t.trim(); }).filter(function(t) { return t !== ""; });
 
     for (var i = 0; i < newTags.length; i++) {
-      if (origTags.indexOf(newTags[i]) === -1) mainInstance.modifyTask(uuid, "tags", "+" + newTags[i]);
+      if (origTags.indexOf(newTags[i]) === -1)
+        modifications.push({field: "tags", value: "+" + newTags[i]});
     }
     for (var j = 0; j < origTags.length; j++) {
-      if (newTags.indexOf(origTags[j]) === -1) mainInstance.modifyTask(uuid, "tags", "-" + origTags[j]);
+      if (newTags.indexOf(origTags[j]) === -1)
+        modifications.push({field: "tags", value: "-" + origTags[j]});
     }
+
+    if (modifications.length > 0)
+      mainInstance.batchModifyTask(uuid, modifications);
   }
 
   // === Delete Confirmation Dialog ===
