@@ -2,7 +2,10 @@
   "bar_widget": {
     "refresh": "Refresh",
     "settings": "Widget Settings",
-    "stop-active": "Stop active task"
+    "stop-active": "Stop active task",
+    "tooltip-pending": "Pending: {count}",
+    "tooltip-overdue": "Overdue: {count}",
+    "tooltip-active": "Active: {task}"
   },
   "main": {
     "task-added": "Task added",
@@ -22,7 +25,10 @@
     "hook-installed": "Hook installed successfully",
     "hook-removed": "Hook removed successfully",
     "hook-install-failed": "Failed to install hook",
-    "hook-remove-failed": "Failed to remove hook"
+    "hook-remove-failed": "Failed to remove hook",
+    "sync-success": "Sync completed successfully",
+    "error-sync-failed": "Sync failed",
+    "error-sync-invalid-command": "Invalid sync command"
   },
   "panel": {
     "header-title": "Taskwarrior",
@@ -77,9 +83,15 @@
     "detail-annotations-label": "Annotations",
     "detail-cancel": "Cancel",
     "detail-save": "Save",
+    "detail-uuid-label": "UUID",
+    "detail-urgency-label": "Urgency",
     "delete-confirm-title": "Delete Task?",
     "delete-cancel": "Cancel",
-    "delete-confirm": "Delete"
+    "delete-confirm": "Delete",
+    "sync-tooltip": "Synchronize with server",
+    "filter-toggle-label": "Filter",
+    "quick-add-due-placeholder": "e.g. tomorrow, eow, 2026-03-15",
+    "quick-add-tags-placeholder": "e.g. urgent, review"
   },
   "settings": {
     "section-bar-widget": "Bar Widget",
@@ -104,6 +116,12 @@
     "hook-status-installed": "Hook installed",
     "hook-status-not-installed": "Hook not installed",
     "hook-install": "Install Hook",
-    "hook-remove": "Remove Hook"
+    "hook-remove": "Remove Hook",
+    "section-sync": "Sync",
+    "sync-command-label": "Sync Command",
+    "sync-command-description": "Command to run for synchronization",
+    "sync-command-placeholder": "e.g. task sync",
+    "sync-on-open-label": "Sync on Panel Open",
+    "sync-on-open-description": "Automatically sync when the panel opens"
   }
 }

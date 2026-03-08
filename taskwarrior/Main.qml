@@ -23,6 +23,7 @@ Item {
     property int hookRetryCount: 0
     property bool refreshInProgress: false
     property int pendingRefreshProcesses: 0
+    property bool syncInProgress: false
 
     // === Initialization ===
     Component.onCompleted: {
@@ -681,6 +682,53 @@ Item {
         }
     }
 
+    // === Sync ===
+    function syncTasks() {
+        if (!root.taskwarriorAvailable)
+            return;
+        if (root.syncInProgress) {
+            Logger.d("Taskwarrior", "Sync already in progress, skipping");
+            return;
+        }
+
+        root.syncInProgress = true;
+
+        var syncCmd = pluginApi?.pluginSettings?.syncCommand || "task sync";
+        var parts = syncCmd.trim().split(/\s+/);
+        if (parts.length === 0 || parts[0] !== "task") {
+            Logger.e("Taskwarrior", "Invalid sync command: " + syncCmd);
+            root.syncInProgress = false;
+            ToastService.showError(pluginApi?.tr("main.error-sync-invalid-command") || "Invalid sync command");
+            return;
+        }
+
+        Logger.i("Taskwarrior", "Starting sync with command: " + parts.join(" "));
+        syncProcess.command = parts;
+        syncProcess.running = true;
+    }
+
+    Process {
+        id: syncProcess
+        stdout: StdioCollector {}
+        stderr: StdioCollector {}
+
+        onExited: function (exitCode, exitStatus) {
+            root.syncInProgress = false;
+            if (exitCode === 0) {
+                ToastService.showNotice(pluginApi?.tr("main.sync-success") || "Sync completed successfully");
+                Logger.i("Taskwarrior", "Sync completed successfully");
+                refreshDebounceTimer.restart();
+            } else {
+                var errText = String(syncProcess.stderr.text || "").trim();
+                var msg = pluginApi?.tr("main.error-sync-failed") || "Sync failed";
+                if (errText)
+                    msg += ": " + errText;
+                ToastService.showError(msg);
+                Logger.e("Taskwarrior", "Sync failed: " + errText);
+            }
+        }
+    }
+
     // === IPC Handler ===
     IpcHandler {
         target: "plugin:taskwarrior"
@@ -727,6 +775,10 @@ Item {
 
         function removeHook() {
             root.removeHook();
+        }
+
+        function sync() {
+            root.syncTasks();
         }
     }
 }

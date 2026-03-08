@@ -16,6 +16,8 @@ ColumnLayout {
     property bool valueShowActiveIndicator: cfg.showActiveIndicator ?? defaults.showActiveIndicator
     property string valueDefaultProject: cfg.defaultProject ?? defaults.defaultProject
     property string valueDefaultPriority: cfg.defaultPriority ?? defaults.defaultPriority
+    property string valueSyncCommand: cfg.syncCommand ?? defaults.syncCommand
+    property bool valueSyncOnOpen: cfg.syncOnOpen ?? defaults.syncOnOpen
 
     readonly property var mainInstance: pluginApi?.mainInstance
     readonly property bool hookInstalled: cfg.hookInstalled ?? defaults.hookInstalled
@@ -109,6 +111,35 @@ ColumnLayout {
 
     NDivider {}
 
+    // === Sync Section ===
+    NText {
+        text: pluginApi?.tr("settings.section-sync") || "Sync"
+        font.pointSize: Style.fontSizeM
+        font.weight: Font.Bold
+        color: Color.mOnSurface
+    }
+
+    NTextInput {
+        Layout.fillWidth: true
+        label: pluginApi?.tr("settings.sync-command-label") || "Sync Command"
+        description: pluginApi?.tr("settings.sync-command-description") || "Command to run for synchronization"
+        placeholderText: pluginApi?.tr("settings.sync-command-placeholder") || "e.g. task sync"
+        text: root.valueSyncCommand
+        onTextChanged: root.valueSyncCommand = text
+    }
+
+    NToggle {
+        Layout.fillWidth: true
+        label: pluginApi?.tr("settings.sync-on-open-label") || "Sync on Panel Open"
+        description: pluginApi?.tr("settings.sync-on-open-description") || "Automatically sync when the panel opens"
+        checked: root.valueSyncOnOpen
+        onToggled: function (checked) {
+            root.valueSyncOnOpen = checked;
+        }
+    }
+
+    NDivider {}
+
     // === Hook Section ===
     NText {
         text: pluginApi?.tr("settings.section-hook") || "Taskwarrior Hook"
@@ -161,6 +192,8 @@ ColumnLayout {
         pluginApi.pluginSettings.showActiveIndicator = root.valueShowActiveIndicator;
         pluginApi.pluginSettings.defaultProject = root.valueDefaultProject;
         pluginApi.pluginSettings.defaultPriority = root.valueDefaultPriority;
+        pluginApi.pluginSettings.syncCommand = root.valueSyncCommand;
+        pluginApi.pluginSettings.syncOnOpen = root.valueSyncOnOpen;
         pluginApi.saveSettings();
     }
 }
