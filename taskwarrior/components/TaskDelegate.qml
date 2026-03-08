@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Commons
 import qs.Widgets
+import "TaskUtils.js" as TaskUtils
 
 Rectangle {
     id: root
@@ -21,7 +22,7 @@ Rectangle {
     property real taskUrgency: 0
 
     readonly property bool isActive: taskStart !== ""
-    readonly property bool isOverdue: isDueOverdue(taskDue)
+    readonly property bool isOverdue: TaskUtils.isDueOverdue(taskDue)
     readonly property bool isPending: taskStatus === "pending"
     readonly property bool isHovered: delegateMouseArea.containsMouse
 
@@ -68,7 +69,7 @@ Rectangle {
                 Layout.preferredHeight: Style.baseWidgetSize * 0.7
                 Layout.alignment: Qt.AlignVCenter
                 radius: 2
-                color: getPriorityColor(root.taskPriority)
+                color: TaskUtils.getPriorityColor(root.taskPriority, Color)
                 visible: root.taskPriority !== ""
             }
 
@@ -140,7 +141,7 @@ Rectangle {
                 Layout.preferredWidth: prioBadgeText.implicitWidth + Style.marginS * 2
                 Layout.preferredHeight: Style.fontSizeS * 2
                 radius: Style.radiusS
-                color: getPriorityColor(root.taskPriority)
+                color: TaskUtils.getPriorityColor(root.taskPriority, Color)
                 opacity: 0.8
 
                 NText {
@@ -175,7 +176,7 @@ Rectangle {
 
                     NText {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: formatDueDate(root.taskDue)
+                        text: TaskUtils.formatDueDate(root.taskDue, root.pluginApi)
                         font.pointSize: Style.fontSizeXS
                         color: root.isOverdue ? Color.mOnError : Color.mOnSurfaceVariant
                     }
@@ -260,42 +261,8 @@ Rectangle {
         }
     }
 
-    // === Helper functions ===
-    function getPriorityColor(priority) {
-        if (priority === "H")
-            return Color.mError;
-        if (priority === "M")
-            return Color.mPrimary;
-        return Color.mOnSurfaceVariant;
-    }
-
-    function formatDueDate(dueStr) {
-        if (!dueStr || dueStr === "")
-            return "";
-        try {
-            var d = new Date(dueStr);
-            var now = new Date();
-            var diffMs = d.getTime() - now.getTime();
-            var diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-            if (diffDays < 0)
-                return pluginApi?.tr("panel.due-overdue") || "Overdue";
-            if (diffDays === 0)
-                return pluginApi?.tr("panel.due-today") || "Today";
-            if (diffDays === 1)
-                return pluginApi?.tr("panel.due-tomorrow") || "Tomorrow";
-            return d.toLocaleDateString();
-        } catch (e) {
-            return dueStr;
-        }
-    }
-
-    function isDueOverdue(dueStr) {
-        if (!dueStr || dueStr === "")
-            return false;
-        try {
-            return new Date(dueStr) < new Date();
-        } catch (e) {
-            return false;
-        }
-    }
+    // Helper functions provided by TaskUtils.js:
+    // TaskUtils.getPriorityColor(priority, Color)
+    // TaskUtils.formatDueDate(dueStr, pluginApi)
+    // TaskUtils.isDueOverdue(dueStr)
 }

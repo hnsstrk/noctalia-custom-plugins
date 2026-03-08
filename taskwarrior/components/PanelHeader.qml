@@ -39,13 +39,16 @@ RowLayout {
 
     NIconButton {
         icon: root.mainInstance?.syncInProgress ? "loader" : "cloud-upload"
-        tooltipText: pluginApi?.tr("panel.sync-tooltip") || "Synchronize with server"
+        tooltipText: (root.mainInstance?.syncInProgress ?? false) ? (pluginApi?.tr("panel.sync-in-progress") || "Syncing...") : (pluginApi?.tr("panel.sync-tooltip") || "Synchronize with server")
         enabled: !(root.mainInstance?.syncInProgress ?? false)
         onClicked: {
             if (root.mainInstance)
                 root.mainInstance.syncTasks();
         }
     }
+
+    // Note: If NIconButton does not animate rotation natively,
+    // wrap in Item { rotation: syncRotation; RotationAnimation { ... } }
 
     NIconButton {
         icon: "settings"

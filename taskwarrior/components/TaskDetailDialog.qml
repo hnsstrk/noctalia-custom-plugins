@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import qs.Commons
 import qs.Widgets
+import "TaskUtils.js" as TaskUtils
 
 Popup {
     id: root
@@ -24,10 +25,10 @@ Popup {
         root.editDescription = task.description || "";
         root.editProject = task.project || "";
         root.editPriority = task.priority || "";
-        root.editDue = task.due ? formatDateForInput(task.due) : "";
+        root.editDue = task.due ? TaskUtils.formatDateForInput(task.due) : "";
         root.editTags = task.tags ? task.tags.join(", ") : "";
-        root.editWait = task.wait ? formatDateForInput(task.wait) : "";
-        root.editScheduled = task.scheduled ? formatDateForInput(task.scheduled) : "";
+        root.editWait = task.wait ? TaskUtils.formatDateForInput(task.wait) : "";
+        root.editScheduled = task.scheduled ? TaskUtils.formatDateForInput(task.scheduled) : "";
         root.open();
     }
 
@@ -217,7 +218,7 @@ Popup {
                     spacing: Style.marginM
 
                     NText {
-                        text: (pluginApi?.tr("panel.detail-uuid-label") || "UUID") + ": " + (root.taskData ? root.taskData.uuid : "")
+                        text: "UUID: " + (root.taskData ? root.taskData.uuid : "")
                         font.pointSize: Style.fontSizeXS
                         font.family: Settings.data.ui.fontFixed
                         color: Color.mOnSurfaceVariant
@@ -226,7 +227,7 @@ Popup {
                     }
 
                     NText {
-                        text: (pluginApi?.tr("panel.detail-urgency-label") || "Urgency") + ": " + (root.taskData ? Number(root.taskData.urgency || 0).toFixed(1) : "0.0")
+                        text: "Urgency: " + (root.taskData ? Number(root.taskData.urgency || 0).toFixed(1) : "0.0")
                         font.pointSize: Style.fontSizeXS
                         color: Color.mOnSurfaceVariant
                     }
@@ -294,21 +295,21 @@ Popup {
                 value: root.editPriority || ""
             });
 
-        var origDue = root.taskData.due ? formatDateForInput(root.taskData.due) : "";
+        var origDue = root.taskData.due ? TaskUtils.formatDateForInput(root.taskData.due) : "";
         if (root.editDue !== origDue)
             modifications.push({
                 field: "due",
                 value: root.editDue || ""
             });
 
-        var origWait = root.taskData.wait ? formatDateForInput(root.taskData.wait) : "";
+        var origWait = root.taskData.wait ? TaskUtils.formatDateForInput(root.taskData.wait) : "";
         if (root.editWait !== origWait)
             modifications.push({
                 field: "wait",
                 value: root.editWait || ""
             });
 
-        var origScheduled = root.taskData.scheduled ? formatDateForInput(root.taskData.scheduled) : "";
+        var origScheduled = root.taskData.scheduled ? TaskUtils.formatDateForInput(root.taskData.scheduled) : "";
         if (root.editScheduled !== origScheduled)
             modifications.push({
                 field: "scheduled",
@@ -343,14 +344,6 @@ Popup {
             root.mainInstance.batchModifyTask(uuid, modifications);
     }
 
-    function formatDateForInput(dateStr) {
-        if (!dateStr || dateStr === "")
-            return "";
-        try {
-            var d = new Date(dateStr);
-            return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
-        } catch (e) {
-            return dateStr;
-        }
-    }
+    // Helper functions provided by TaskUtils.js:
+    // TaskUtils.formatDateForInput(dateStr)
 }

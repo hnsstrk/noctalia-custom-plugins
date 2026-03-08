@@ -692,18 +692,8 @@ Item {
         }
 
         root.syncInProgress = true;
-
-        var syncCmd = pluginApi?.pluginSettings?.syncCommand || "task sync";
-        var parts = syncCmd.trim().split(/\s+/);
-        if (parts.length === 0 || parts[0] !== "task") {
-            Logger.e("Taskwarrior", "Invalid sync command: " + syncCmd);
-            root.syncInProgress = false;
-            ToastService.showError(pluginApi?.tr("main.error-sync-invalid-command") || "Invalid sync command");
-            return;
-        }
-
-        Logger.i("Taskwarrior", "Starting sync with command: " + parts.join(" "));
-        syncProcess.command = parts;
+        Logger.i("Taskwarrior", "Starting task sync");
+        syncProcess.command = ["task", "sync"];
         syncProcess.running = true;
     }
 
