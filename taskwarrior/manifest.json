@@ -1,7 +1,7 @@
 {
   "id": "taskwarrior",
   "name": "Taskwarrior",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "minNoctaliaVersion": "4.1.2",
   "author": "hnsstrk",
   "license": "MIT",
@@ -23,7 +23,9 @@
       "showActiveIndicator": true,
       "defaultProject": "",
       "defaultPriority": "",
-      "hookInstalled": false
+      "hookInstalled": false,
+      "syncCommand": "task sync",
+      "syncOnOpen": false
     }
   }
 }
