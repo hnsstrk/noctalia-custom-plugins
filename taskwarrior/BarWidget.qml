@@ -139,6 +139,11 @@ Item {
                 "action": "refresh",
                 "icon": "refresh"
             });
+            items.push({
+                "label": pluginApi?.tr("panel.sync-tooltip") || "Sync",
+                "action": "sync",
+                "icon": "cloud-upload"
+            });
             if (root.hasActive) {
                 items.push({
                     "label": pluginApi?.tr("bar_widget.stop-active") || "Stop active task",
@@ -164,6 +169,8 @@ Item {
                 mainInstance.refreshAll();
             } else if (action === "stop-active" && mainInstance && root.activeTask) {
                 mainInstance.stopTask(root.activeTask.uuid);
+            } else if (action === "sync" && mainInstance) {
+                mainInstance.syncTasks();
             }
         }
     }
@@ -184,5 +191,26 @@ Item {
                 PanelService.showContextMenu(contextMenu, root, screen);
             }
         }
+
+        onEntered: {
+            var tooltipText = (pluginApi?.tr("bar_widget.tooltip-pending", {
+                    count: root.pendingCount
+                }) || ("Pending: " + root.pendingCount)) + " \u00b7 " + (pluginApi?.tr("bar_widget.tooltip-overdue", {
+                    count: root.overdueCount
+                }) || ("Overdue: " + root.overdueCount));
+
+            if (root.hasActive && root.activeTask) {
+                var taskTitle = String(root.activeTask.description || "");
+                if (taskTitle.length > 50)
+                    taskTitle = taskTitle.substring(0, 50) + "...";
+                tooltipText += "\n" + (pluginApi?.tr("bar_widget.tooltip-active", {
+                        task: taskTitle
+                    }) || ("Active: " + taskTitle));
+            }
+
+            TooltipService.show(root, tooltipText, BarService.getTooltipDirection());
+        }
+
+        onExited: TooltipService.hide()
     }
 }
