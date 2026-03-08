@@ -83,6 +83,12 @@ IpcHandler {
 // External call: qs -c noctalia-shell ipc call plugin:<id> myMethod "param"
 ```
 
+### Icons
+
+Noctalia nutzt **[Tabler Icons](https://tabler.io/icons)** (6000+ Icons). Verwendung über `NIcon` oder die `icon`-Property von `NIconButton`/`NPopupContextMenu`. Icon-Namen in kebab-case, z.B. `"clipboard-check"`, `"cloud-upload"`, `"refresh"`.
+
+Suche nach passenden Icons: https://tabler.io/icons
+
 ### Imports and Styling
 
 ```qml
