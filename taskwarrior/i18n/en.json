@@ -83,6 +83,8 @@
     "detail-annotations-label": "Annotations",
     "detail-cancel": "Cancel",
     "detail-save": "Save",
+    "detail-uuid-label": "UUID",
+    "detail-urgency-label": "Urgency",
     "delete-confirm-title": "Delete Task?",
     "delete-cancel": "Cancel",
     "delete-confirm": "Delete",

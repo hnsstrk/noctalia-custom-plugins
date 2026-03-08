@@ -217,7 +217,7 @@ Popup {
                     spacing: Style.marginM
 
                     NText {
-                        text: "UUID: " + (root.taskData ? root.taskData.uuid : "")
+                        text: (pluginApi?.tr("panel.detail-uuid-label") || "UUID") + ": " + (root.taskData ? root.taskData.uuid : "")
                         font.pointSize: Style.fontSizeXS
                         font.family: Settings.data.ui.fontFixed
                         color: Color.mOnSurfaceVariant
@@ -226,7 +226,7 @@ Popup {
                     }
 
                     NText {
-                        text: "Urgency: " + (root.taskData ? Number(root.taskData.urgency || 0).toFixed(1) : "0.0")
+                        text: (pluginApi?.tr("panel.detail-urgency-label") || "Urgency") + ": " + (root.taskData ? Number(root.taskData.urgency || 0).toFixed(1) : "0.0")
                         font.pointSize: Style.fontSizeXS
                         color: Color.mOnSurfaceVariant
                     }
