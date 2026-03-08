@@ -24,7 +24,6 @@
       "defaultProject": "",
       "defaultPriority": "",
       "hookInstalled": false,
-      "syncCommand": "task sync",
       "syncOnOpen": false
     }
   }

@@ -22,13 +22,6 @@ Item {
     property bool showEmptyState: false
     property string localSearchText: ""
 
-    // === Filter state ===
-    property string filterStatus: "pending"
-    property string filterProject: ""
-    property string filterPriority: ""
-    property string filterDue: ""
-    property var filterTags: []
-
     // === Lifecycle ===
     onVisibleChanged: {
         if (visible && mainInstance) {
@@ -44,16 +37,16 @@ Item {
     // === Filter logic ===
     function buildAndApplyFilter() {
         var filter = {};
-        if (root.filterStatus && root.filterStatus !== "all")
-            filter.status = root.filterStatus;
-        if (root.filterProject && root.filterProject !== "")
-            filter.project = root.filterProject;
-        if (root.filterPriority && root.filterPriority !== "")
-            filter.priority = root.filterPriority;
-        if (root.filterDue && root.filterDue !== "")
-            filter.due = root.filterDue;
-        if (root.filterTags.length > 0)
-            filter.tags = root.filterTags;
+        if (filterBar.filterStatus && filterBar.filterStatus !== "all")
+            filter.status = filterBar.filterStatus;
+        if (filterBar.filterProject && filterBar.filterProject !== "")
+            filter.project = filterBar.filterProject;
+        if (filterBar.filterPriority && filterBar.filterPriority !== "")
+            filter.priority = filterBar.filterPriority;
+        if (filterBar.filterDue && filterBar.filterDue !== "")
+            filter.due = filterBar.filterDue;
+        if (filterBar.filterTags.length > 0)
+            filter.tags = filterBar.filterTags;
         if (mainInstance)
             mainInstance.applyFilter(filter);
     }
@@ -76,19 +69,18 @@ Item {
                 taskStatus: task.status || "pending",
                 taskTags: task.tags ? task.tags.join(", ") : "",
                 taskStart: task.start || "",
-                taskUrgency: task.urgency || 0,
-                taskEntry: task.entry || ""
+                taskUrgency: task.urgency || 0
             });
         }
         root.showEmptyState = (filteredTasksModel.count === 0);
     }
 
     function resetFilters() {
-        root.filterStatus = "pending";
-        root.filterProject = "";
-        root.filterPriority = "";
-        root.filterDue = "";
-        root.filterTags = [];
+        filterBar.filterStatus = "pending";
+        filterBar.filterProject = "";
+        filterBar.filterPriority = "";
+        filterBar.filterDue = "";
+        filterBar.filterTags = [];
         root.localSearchText = "";
         buildAndApplyFilter();
     }
@@ -116,20 +108,7 @@ Item {
                 id: filterBar
                 pluginApi: root.pluginApi
                 mainInstance: root.mainInstance
-                filterStatus: root.filterStatus
-                filterProject: root.filterProject
-                filterPriority: root.filterPriority
-                filterDue: root.filterDue
-                filterTags: root.filterTags
-                searchText: root.localSearchText
-                onFilterChanged: {
-                    root.filterStatus = filterBar.filterStatus;
-                    root.filterProject = filterBar.filterProject;
-                    root.filterPriority = filterBar.filterPriority;
-                    root.filterDue = filterBar.filterDue;
-                    root.filterTags = filterBar.filterTags;
-                    root.buildAndApplyFilter();
-                }
+                onFilterChanged: root.buildAndApplyFilter()
                 onSearchChanged: function (text) {
                     root.localSearchText = text;
                     root.reloadTaskList();

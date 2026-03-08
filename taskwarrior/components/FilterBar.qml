@@ -9,7 +9,7 @@ Rectangle {
     property var pluginApi: null
     property var mainInstance: null
 
-    // Filter state (bound bidirectionally from Panel)
+    // Filter state (FilterBar is the source of truth)
     property string filterStatus: "pending"
     property string filterProject: ""
     property string filterPriority: ""
@@ -281,7 +281,7 @@ Rectangle {
                 spacing: Style.marginS
 
                 NComboBox {
-                    Layout.preferredWidth: 160
+                    Layout.preferredWidth: 160 * Style.uiScaleRatio
                     label: pluginApi?.tr("panel.filter-due-label") || "Due"
                     currentKey: root.filterDue
                     model: [
@@ -308,8 +308,27 @@ Rectangle {
                     }
                 }
 
-                Item {
+                NTextInput {
                     Layout.fillWidth: true
+                    placeholderText: pluginApi?.tr("panel.filter-tags-placeholder") || "Add tag filter..."
+                    Keys.onReturnPressed: {
+                        var tagText = text.trim();
+                        if (tagText === "")
+                            return;
+                        var newTags = tagText.split(",").map(function (t) {
+                            return t.trim();
+                        }).filter(function (t) {
+                            return t !== "";
+                        });
+                        var currentTags = root.filterTags.slice();
+                        for (var i = 0; i < newTags.length; i++) {
+                            if (currentTags.indexOf(newTags[i]) === -1)
+                                currentTags.push(newTags[i]);
+                        }
+                        root.filterTags = currentTags;
+                        text = "";
+                        root.filterChanged();
+                    }
                 }
 
                 NIconButton {

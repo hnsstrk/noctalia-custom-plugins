@@ -152,12 +152,42 @@ Types: `feat`, `fix`, `chore`, `i18n`, `docs`
 - **IPC params are always strings** — explicit type conversion required
 - **Logger** for debug output, never `console.log`
 
-### Versioning
+### Versioning & Release
 
-- Jeder PR der Plugin-Code ändert (QML, JS, Hook-Scripts) **MUSS** die `version` in `manifest.json` bumpen
-- SemVer: `MAJOR.MINOR.PATCH` — Bugfixes/Security → Patch, neue Features → Minor, Breaking Changes → Major
-- Die `registry.json` wird automatisch per GitHub Action aktualisiert wenn `manifest.json` sich ändert
-- **Ohne Version-Bump wird die Registry nicht aktualisiert** — Nutzer erhalten kein Update
+#### SemVer-Regeln (`MAJOR.MINOR.PATCH`)
+
+| Bump  | Wann                                                                 | Beispiel                                    |
+|-------|----------------------------------------------------------------------|---------------------------------------------|
+| PATCH | Bugfixes, Security-Fixes, Typos, rein kosmetische Änderungen        | `1.0.0` → `1.0.1`                          |
+| MINOR | Neue Features, neue Settings, neue i18n-Keys (abwärtskompatibel)    | `1.0.1` → `1.1.0`                          |
+| MAJOR | Breaking Changes: entfernte Settings, geänderte IPC-Schnittstellen, inkompatible Hook-Änderungen | `1.1.0` → `2.0.0` |
+
+**Pflicht:** Jeder PR der Plugin-Code ändert (QML, JS, Hook-Scripts) **MUSS** einen Version-Bump enthalten. Ohne Version-Bump erhalten Nutzer kein Update.
+
+#### Source of Truth
+
+`<plugin>/manifest.json` → `"version"` ist die **einzige autoritative Quelle** für die Plugin-Version. Alle anderen Stellen werden davon abgeleitet.
+
+#### Checkliste bei Version-Bump
+
+Bei **jedem** Version-Bump müssen folgende Dateien aktualisiert werden:
+
+1. **`<plugin>/manifest.json`** — Version-Feld auf neue Version setzen (Source of Truth)
+2. **`README.md`** — Plugin-Tabelle aktualisieren, sodass die angezeigte Version mit manifest.json übereinstimmt
+3. **`registry.json`** — generieren mit `node .github/workflows/update-registry.js` (niemals manuell editieren)
+
+**WICHTIG:** Die Plugin-Tabelle in `README.md` MUSS bei jedem Version-Bump mit aktualisiert werden. Inkonsistenzen zwischen manifest.json und README sind nicht akzeptabel.
+
+#### Release-Reihenfolge
+
+```
+1. manifest.json   — Version bumpen
+2. README.md       — Plugin-Tabelle aktualisieren
+3. Registry        — node .github/workflows/update-registry.js
+4. Commit          — chore(<plugin>): bump version to X.Y.Z
+```
+
+Die Registry wird zusätzlich automatisch per GitHub Action auf `main` regeneriert, aber das manuelle Ausführen vor dem Commit stellt sicher, dass der PR-Diff vollständig ist und Reviews die korrekte Registry sehen.
 
 ### Pull Request Workflow
 

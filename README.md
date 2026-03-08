@@ -13,7 +13,7 @@ Custom plugins for Noctalia Shell by hnsstrk.
 
 | Plugin | Version | Description |
 |--------|---------|-------------|
-| Taskwarrior | 1.0.0 | A full-featured Taskwarrior client |
+| Taskwarrior | 2.0.0 | A full-featured Taskwarrior client |
 
 ## Development
 

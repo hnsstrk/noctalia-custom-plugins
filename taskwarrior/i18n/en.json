@@ -2,6 +2,7 @@
   "bar_widget": {
     "refresh": "Refresh",
     "settings": "Widget Settings",
+    "sync": "Sync",
     "stop-active": "Stop active task",
     "tooltip-pending": "Pending: {count}",
     "tooltip-overdue": "Overdue: {count}",
@@ -27,8 +28,7 @@
     "hook-install-failed": "Failed to install hook",
     "hook-remove-failed": "Failed to remove hook",
     "sync-success": "Sync completed successfully",
-    "error-sync-failed": "Sync failed",
-    "error-sync-invalid-command": "Invalid sync command"
+    "error-sync-failed": "Sync failed"
   },
   "panel": {
     "header-title": "Taskwarrior",
@@ -89,9 +89,11 @@
     "delete-cancel": "Cancel",
     "delete-confirm": "Delete",
     "sync-tooltip": "Synchronize with server",
+    "sync-in-progress": "Syncing...",
     "filter-toggle-label": "Filter",
     "quick-add-due-placeholder": "e.g. tomorrow, eow, 2026-03-15",
-    "quick-add-tags-placeholder": "e.g. urgent, review"
+    "quick-add-tags-placeholder": "e.g. urgent, review",
+    "filter-tags-placeholder": "Add tag filter..."
   },
   "settings": {
     "section-bar-widget": "Bar Widget",
@@ -118,9 +120,6 @@
     "hook-install": "Install Hook",
     "hook-remove": "Remove Hook",
     "section-sync": "Sync",
-    "sync-command-label": "Sync Command",
-    "sync-command-description": "Command to run for synchronization",
-    "sync-command-placeholder": "e.g. task sync",
     "sync-on-open-label": "Sync on Panel Open",
     "sync-on-open-description": "Automatically sync when the panel opens"
   }

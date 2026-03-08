@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Commons
 import qs.Widgets
+import qs.Services.UI
+import "TaskUtils.js" as TaskUtils
 
 ColumnLayout {
     id: root
@@ -15,7 +17,11 @@ ColumnLayout {
 
     function addNewTask() {
         var desc = descriptionInput.text.trim();
-        if (!desc || !root.mainInstance)
+        if (!desc) {
+            ToastService.showError(pluginApi?.tr("main.error-empty-description") || "Description cannot be empty");
+            return;
+        }
+        if (!root.mainInstance)
             return;
         root.mainInstance.addTask(desc, projectInput.text.trim(), priorityGroup.currentPriority, dueInput.text.trim(), tagsInput.text.trim());
         descriptionInput.text = "";
@@ -75,13 +81,13 @@ ColumnLayout {
                             required property int index
                             width: (parent.width - 2) / 3
                             height: parent.height
-                            color: priorityGroup.currentPriority === modelData ? getPriorityColor(modelData) : "transparent"
+                            color: priorityGroup.currentPriority === modelData ? TaskUtils.getPriorityColor(modelData, Color) : "transparent"
                             radius: Style.iRadiusS
 
                             NText {
                                 anchors.centerIn: parent
                                 text: modelData
-                                color: priorityGroup.currentPriority === modelData ? Color.mOnPrimary : getPriorityColor(modelData)
+                                color: priorityGroup.currentPriority === modelData ? Color.mOnPrimary : TaskUtils.getPriorityColor(modelData, Color)
                                 font.pointSize: Style.fontSizeS
                                 font.weight: Font.Bold
                             }
@@ -123,12 +129,6 @@ ColumnLayout {
         }
     }
 
-    // Helper
-    function getPriorityColor(priority) {
-        if (priority === "H")
-            return Color.mError;
-        if (priority === "M")
-            return Color.mPrimary;
-        return Color.mOnSurfaceVariant;
-    }
+    // Helper functions provided by TaskUtils.js:
+    // TaskUtils.getPriorityColor(priority, Color)
 }

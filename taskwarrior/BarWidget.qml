@@ -140,7 +140,7 @@ Item {
                 "icon": "refresh"
             });
             items.push({
-                "label": pluginApi?.tr("panel.sync-tooltip") || "Sync",
+                "label": pluginApi?.tr("bar_widget.sync") || "Sync",
                 "action": "sync",
                 "icon": "cloud-upload"
             });
