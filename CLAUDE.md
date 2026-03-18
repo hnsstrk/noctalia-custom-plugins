@@ -208,6 +208,10 @@ Die Registry wird zusätzlich automatisch per GitHub Action auf `main` regenerie
 
 **WICHTIG:** Nach jedem Push von Fixes MUSS ein Re-Review mit `/gemini review` getriggert werden. Niemals ohne finalen Review-Durchlauf mergen. Der Zyklus ist: Fix → Push → Kommentare beantworten → `/gemini review` → Feedback prüfen → ggf. wiederholen → Merge.
 
+## Documentation
+
+Projektdokumentation: Siehe Obsidian Vault [[Noctalia Custom Plugins]]
+
 ### Security Patterns (Taskwarrior Plugin)
 
 - **CLI-Befehle als Array** — niemals `sh -c` mit String-Konkatenation, immer parametrisierte Arrays: `["task", arg1, arg2]`
