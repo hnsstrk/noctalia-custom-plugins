@@ -120,28 +120,41 @@ color: mouseArea.containsMouse ? Color.mHover : Style.capsuleColor
 ```qml
 NPopupContextMenu {
     id: contextMenu
-    actions: [
-        Action {
-            text: "Settings"
-            icon.name: "settings"
-            onTriggered: {
-                contextMenu.close()
-                PanelService.closeContextMenu(root.screen)
-                BarService.openPluginSettings(root.screen, pluginApi.manifest)
-            }
+
+    model: [
+        {
+            "label": pluginApi?.tr("menu.refresh") || "Refresh",
+            "action": "refresh",
+            "icon": "refresh"
+        },
+        {
+            "label": pluginApi?.tr("menu.settings") || "Settings",
+            "action": "settings",
+            "icon": "settings"
         }
     ]
+
+    onTriggered: action => {
+        contextMenu.close()
+        PanelService.closeContextMenu(root.screen)
+
+        if (action === "refresh") {
+            // Perform refresh
+        } else if (action === "settings") {
+            BarService.openPluginSettings(root.screen, pluginApi.manifest)
+        }
+    }
 }
 
 // In MouseArea:
 onClicked: function(mouse) {
     if (mouse.button === Qt.RightButton) {
-        PanelService.showContextMenu(root.screen, contextMenu, root)
+        PanelService.showContextMenu(contextMenu, root, root.screen)
     }
 }
 ```
 
-Always call both `contextMenu.close()` and `PanelService.closeContextMenu(screen)` in handlers.
+Always call both `contextMenu.close()` and `PanelService.closeContextMenu(screen)` in action handlers.
 
 ## Tooltips
 

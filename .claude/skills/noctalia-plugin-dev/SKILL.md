@@ -61,7 +61,23 @@ my-plugin/
 
 ### pluginApi — the central API object
 
-Every component receives `property var pluginApi: null` from the framework. Always null-check:
+Every component receives `property var pluginApi: null` from the framework. Always null-check.
+
+Available properties and methods:
+
+```
+pluginApi.pluginId               // Unique plugin identifier
+pluginApi.pluginDir              // Absolute path to plugin directory
+pluginApi.currentLanguage        // Current UI language code
+pluginApi.manifest               // Plugin manifest data
+pluginApi.mainInstance           // Reference to Main.qml
+pluginApi.barWidget              // Reference to BarWidget component
+pluginApi.desktopWidget          // Reference to DesktopWidget component
+pluginApi.controlCenterWidget    // Reference to CC widget
+pluginApi.launcherProvider       // Reference to LauncherProvider
+pluginApi.panelOpenScreen        // Screen where panel is displayed (Panel only)
+pluginApi.hasTranslation(key)    // Check if translation key exists
+```
 
 ```qml
 // Settings access with fallback chain
@@ -95,10 +111,18 @@ import QtQuick                // Qt6 ONLY — never use Qt5Compat
 import QtQuick.Layouts
 import Quickshell             // ShellScreen etc.
 import Quickshell.Io          // Process, IpcHandler, StdioCollector
-import qs.Commons             // Style, Color, Settings, Logger, I18n, Keybinds
+import qs.Commons             // Style, Color, Settings, Logger, Time, I18n, Keybinds
 import qs.Widgets             // NText, NIcon, NButton, NTextInput, NToggle, etc.
 import qs.Services.UI         // ToastService, TooltipService, PanelService, BarService
-import qs.Services.System     // AudioService, BatteryService, NetworkService
+import qs.Services.Hardware   // BatteryService, BrightnessService
+import qs.Services.Media      // AudioService, MediaService, SpectrumService
+import qs.Services.Networking // NetworkService, BluetoothService, VPNService
+import qs.Services.System     // NotificationService, SoundService, SystemStatService
+import qs.Services.Power      // PowerProfileService, IdleService
+import qs.Services.Compositor // CompositorService
+import qs.Services.Keyboard   // ClipboardService, KeyboardLayoutService
+import qs.Services.Location   // CalendarService, DarkModeService
+import qs.Services.Theming    // ColorSchemeService, AppThemeService
 import qs.Modules.DesktopWidgets  // DraggableDesktopWidget (only for desktop widgets)
 ```
 
@@ -107,14 +131,35 @@ import qs.Modules.DesktopWidgets  // DraggableDesktopWidget (only for desktop wi
 ```qml
 // Colors
 Color.mPrimary, Color.mOnPrimary
+Color.mSecondary, Color.mOnSecondary
+Color.mTertiary, Color.mOnTertiary
 Color.mSurface, Color.mOnSurface
 Color.mSurfaceVariant, Color.mOnSurfaceVariant
-Color.mError, Color.mHover
+Color.mError, Color.mOnError
+Color.mOutline, Color.mShadow
+Color.mHover, Color.mOnHover
+
+// Font sizes (all values in pt)
+Style.fontSizeXXS (8), Style.fontSizeXS (9), Style.fontSizeS (10), Style.fontSizeM (11)
+Style.fontSizeL (13), Style.fontSizeXL (16), Style.fontSizeXXL (18), Style.fontSizeXXXL (24)
+
+// Font weights
+Style.fontWeightRegular (400), Style.fontWeightMedium (500)
+Style.fontWeightSemiBold (600), Style.fontWeightBold (700)
 
 // Spacing & sizing
-Style.marginXS, Style.marginS, Style.marginM, Style.marginL
-Style.radiusS, Style.radiusM, Style.radiusL
-Style.fontSizeS, Style.fontSizeM, Style.fontSizeL
+Style.marginXXXS .. Style.marginXL
+Style.radiusXXXS .. Style.radiusL    // Container radius
+Style.iRadiusXXXS .. Style.iRadiusL  // Input radius
+
+// Animation durations (affected by animationSpeed setting)
+Style.animationFaster (75ms), Style.animationFast (150ms)
+Style.animationNormal (300ms), Style.animationSlow (450ms), Style.animationSlowest (750ms)
+
+// Opacity levels
+Style.opacityNone, Style.opacityLight, Style.opacityMedium
+Style.opacityHeavy, Style.opacityAlmost, Style.opacityFull
+
 Style.barHeight, Style.capsuleColor, Style.capsuleBorderColor, Style.capsuleBorderWidth
 Style.uiScaleRatio          // multiply by preferred dimensions
 Style.sliderWidth, Style.baseWidgetSize
@@ -146,9 +191,12 @@ Never use `console.log` — always use Logger.
 
 ```qml
 import qs.Services.UI
-ToastService.showNotice("Operation completed")
-ToastService.showError("Something went wrong")
+ToastService.showNotice(title, description?, icon?, duration?, actionLabel?, actionCallback?)
+ToastService.showWarning(title, description?, duration?, actionLabel?, actionCallback?)
+ToastService.showError(title, description?, duration?, actionLabel?, actionCallback?)
 ```
+
+Default durations: notice=3000ms, warning=4000ms, error=6000ms.
 
 ### Async CLI execution (Process + StdioCollector)
 
@@ -192,10 +240,47 @@ IpcHandler {
 ### Bar Widget — required properties
 
 ```qml
-property var pluginApi: null
-property ShellScreen screen
-property string widgetId: ""
-property string section: ""      // "left", "center", "right"
+Item {
+    id: root
+    property var pluginApi: null
+    property ShellScreen screen
+    property string widgetId: ""
+    property string section: ""      // "left", "center", "right"
+
+    readonly property string screenName: screen?.name ?? ""
+    readonly property real capsuleHeight: Style.getCapsuleHeightForScreen(screenName)
+    readonly property real barFontSize: Style.getBarFontSizeForScreen(screenName)
+    readonly property real contentWidth: content.implicitWidth + Style.marginM * 2
+    readonly property real contentHeight: capsuleHeight
+
+    implicitWidth: contentWidth
+    implicitHeight: contentHeight
+
+    Rectangle {
+        id: visualCapsule
+        x: Style.pixelAlignCenter(parent.width, width)
+        y: Style.pixelAlignCenter(parent.height, height)
+        width: root.contentWidth
+        height: root.contentHeight
+        color: mouseArea.containsMouse ? Color.mHover : Style.capsuleColor
+        radius: Style.radiusL
+        border.color: Style.capsuleBorderColor
+        border.width: Style.capsuleBorderWidth
+
+        RowLayout {
+            id: content
+            anchors.centerIn: parent
+            spacing: Style.marginS
+        }
+    }
+
+    MouseArea {
+        id: mouseArea
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+    }
+}
 ```
 
 Uses `Item` root with centered `Rectangle` (visual capsule pattern). Must handle hover states
@@ -270,7 +355,8 @@ Requires `pluginApi`, `launcher`, `name` properties. Must implement `handleComma
 1. **Create plugin directory** in `~/.config/noctalia/plugins/` (or symlink from dev dir)
 2. **Write manifest.json** with at least one entry point
 3. **Register** in `~/.config/noctalia/plugins.json` with `"enabled": true`
-4. **Develop with hot reload**: `NOCTALIA_DEBUG=1 noctalia-shell`
+4. **Develop with hot reload**: `NOCTALIA_DEBUG=1 qs -c noctalia-shell`
+   - Or toggle debug mode per-plugin from the plugin list in Settings (v4.6.7+)
    - Or click Noctalia logo 8 times in About tab
    - QML + i18n files are watched and reloaded automatically
 5. **Format QML**: `/usr/lib/qt6/bin/qmlformat -i <file>.qml`

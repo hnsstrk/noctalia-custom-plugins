@@ -32,6 +32,7 @@ All entry points are optional, but at least one must be specified:
     "main": "Main.qml",                           // Background logic, IPC
     "barWidget": "BarWidget.qml",                  // Status bar widget
     "desktopWidget": "DesktopWidget.qml",          // Draggable desktop widget
+    "desktopWidgetSettings": "DesktopWidgetSettings.qml", // Per-instance desktop widget config
     "controlCenterWidget": "ControlCenterWidget.qml", // Control center button
     "launcherProvider": "LauncherProvider.qml",    // Launcher search/commands
     "panel": "Panel.qml",                          // Overlay panel
@@ -94,6 +95,8 @@ The PluginRegistry enforces:
   "entryPoints": {
     "main": "Main.qml",
     "barWidget": "BarWidget.qml",
+    "desktopWidget": "DesktopWidget.qml",
+    "desktopWidgetSettings": "DesktopWidgetSettings.qml",
     "panel": "Panel.qml",
     "settings": "Settings.qml"
   },

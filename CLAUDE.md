@@ -16,7 +16,7 @@ node .github/workflows/update-registry.js
 /usr/lib/qt6/bin/qmlformat -i <file>.qml
 
 # Hot reload during development
-NOCTALIA_DEBUG=1 noctalia-shell
+NOCTALIA_DEBUG=1 qs -c noctalia-shell
 ```
 
 ## Architecture
@@ -90,7 +90,14 @@ Suche nach passenden Icons: https://tabler.io/icons
 ```qml
 import QtQuick               // Qt6 ONLY — never use Qt5Compat
 import QtQuick.Layouts
-import qs.Commons             // Style, Color, Settings, Logger
+import qs.Commons             // Style, Color, Settings, Logger, Time
+import qs.Services.UI         // ToastService, TooltipService, PanelService, BarService
+import qs.Services.Hardware   // BatteryService, BrightnessService
+import qs.Services.Media      // AudioService, MediaService
+import qs.Services.Networking // NetworkService, BluetoothService
+import qs.Services.System     // NotificationService, SoundService
+import qs.Services.Power      // PowerProfileService, IdleService
+import qs.Services.Compositor // CompositorService
 
 Color.mPrimary, Color.mOnPrimary, Color.mSurface, Color.mError  // Material colors
 Style.marginM, Style.radiusL, Style.fontSizeM, Style.uiScaleRatio
@@ -102,9 +109,9 @@ Logger.i("PluginName", "message")  // Also .d(), .w(), .e()
 
 ```qml
 import qs.Services.UI
-ToastService.showNotice("message")  // Also .showError()
+ToastService.showNotice("message")  // Also .showWarning(), .showError()
 BarService.openPluginSettings(screen, pluginApi.manifest)
-PanelService.showContextMenu(screen, contextMenu, root)
+PanelService.showContextMenu(contextMenu, root, screen)
 ```
 
 ### Settings Pattern
@@ -121,7 +128,7 @@ function saveSettings() {
 }
 ```
 
-Available widgets: NTextInput, NToggle, NSpinBox, NComboBox, NButton, NDivider, NLabel, NCheckbox, NSlider, NColorPicker
+Available widgets: NTextInput, NToggle, NSpinBox, NComboBox, NButton, NDivider, NLabel, NCheckbox, NSlider, NColorPicker, NScrollView, NIconButton, NIconButtonHot, NRadioButton, NFilePicker, NSearchableComboBox, NCollapsible, NTabView
 
 ## Conventions
 

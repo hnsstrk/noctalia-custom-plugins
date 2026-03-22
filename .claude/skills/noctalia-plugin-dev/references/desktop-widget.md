@@ -37,7 +37,7 @@ From `DraggableDesktopWidget`:
 | `isDragging` | bool | Currently being dragged (read-only) |
 | `isScaling` | bool | Currently being scaled (read-only) |
 | `showBackground` | bool | Show default background container |
-| `widgetScale` | real | Scale factor (0.5 to 3.0) |
+| `widgetScale` | real | Scale factor (0.5 to 5.0) |
 
 ## Dimension-Based Scaling (critical)
 
@@ -104,12 +104,78 @@ readonly property string setting:
     pluginApi?.pluginSettings?.propertyName || "defaultValue"
 ```
 
+## Transparent Widget (No Background)
+
+Set `showBackground: false` to remove the default container background for transparent overlays
+(e.g., floating clocks, info overlays):
+
+```qml
+DraggableDesktopWidget {
+    id: root
+    property var pluginApi: null
+    showBackground: false
+
+    implicitWidth: Math.round(300 * widgetScale)
+    implicitHeight: Math.round(150 * widgetScale)
+
+    NText {
+        text: "12:34"
+        pointSize: Math.round(Style.fontSizeXXXL * 2 * widgetScale)
+        font.weight: Font.Light
+        color: Color.mOnSurface
+        anchors.centerIn: parent
+
+        layer.enabled: !root.isScaling
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.5
+            shadowOpacity: 0.3
+        }
+    }
+}
+```
+
+## Per-Instance Settings (desktopWidgetSettings)
+
+Each desktop widget instance can have its own configuration UI. Access per-instance data
+via `widgetData`:
+
+```qml
+// DesktopWidgetSettings.qml
+import QtQuick
+import QtQuick.Layouts
+import qs.Commons
+import qs.Widgets
+
+ColumnLayout {
+    property var pluginApi: null
+    property var widgetData: ({})
+    spacing: Style.marginM
+
+    property color editColor: widgetData?.textColor || Color.mOnSurface
+
+    NLabel { label: "Widget Settings" }
+
+    NColorPicker {
+        Layout.preferredWidth: Style.sliderWidth
+        Layout.preferredHeight: Style.baseWidgetSize
+        selectedColor: editColor
+        onColorSelected: function(color) { editColor = color }
+    }
+
+    function saveSettings() {
+        widgetData.textColor = editColor
+    }
+}
+```
+
 ## Manifest Registration
 
 ```json
 {
   "entryPoints": {
-    "desktopWidget": "DesktopWidget.qml"
+    "desktopWidget": "DesktopWidget.qml",
+    "desktopWidgetSettings": "DesktopWidgetSettings.qml"
   }
 }
 ```
