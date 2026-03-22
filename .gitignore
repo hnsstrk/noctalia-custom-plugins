@@ -1,7 +1,8 @@
-# Project docs (local only)
-CLAUDE.md
+# Plugin-internal docs (local planning, design, analysis)
+*/docs/
+
+# Local files
 TODO.md
-docs/
 
 # Dependencies
 node_modules/
