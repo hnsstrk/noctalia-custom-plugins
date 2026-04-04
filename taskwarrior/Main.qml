@@ -648,8 +648,8 @@ Item {
         onExited: function (exitCode, exitStatus) {
             if (exitCode === 0) {
                 if (pluginApi) {
-                    pluginApi?.pluginSettings.hookInstalled = true;
-                    pluginApi?.saveSettings();
+                    pluginApi.pluginSettings.hookInstalled = true;
+                    pluginApi.saveSettings();
                 }
                 ToastService.showNotice(pluginApi?.tr("main.hook-installed") || "Hook installed successfully");
                 Logger.i("Taskwarrior", "Hook installed successfully");
@@ -669,8 +669,8 @@ Item {
         onExited: function (exitCode, exitStatus) {
             if (exitCode === 0) {
                 if (pluginApi) {
-                    pluginApi?.pluginSettings.hookInstalled = false;
-                    pluginApi?.saveSettings();
+                    pluginApi.pluginSettings.hookInstalled = false;
+                    pluginApi.saveSettings();
                 }
                 ToastService.showNotice(pluginApi?.tr("main.hook-removed") || "Hook removed successfully");
                 Logger.i("Taskwarrior", "Hook removed successfully");
@@ -726,8 +726,8 @@ Item {
         function togglePanel() {
             if (!pluginApi)
                 return;
-            pluginApi?.withCurrentScreen(function (screen) {
-                pluginApi?.togglePanel(screen);
+            pluginApi.withCurrentScreen(function (screen) {
+                pluginApi.togglePanel(screen);
             });
         }
 
